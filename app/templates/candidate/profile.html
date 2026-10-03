@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — CareerHub{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section-head"><div><p class="eyebrow">CANDIDATE PROFILE</p><h1>Build your professional profile</h1><p class="muted">Keep your profile, resumes and portfolio information ready for every application.</p></div><a class="btn ghost" href="{{url_for('candidate.dashboard')}}">← Dashboard</a></div><div class="panel"><div class="section-head"><div><h2>Profile photo</h2><p class="muted">Use a clear professional JPG, PNG or WEBP image.</p></div>{% if profile.photo %}<img src="{{url_for('candidate.photo')}}" alt="Profile photo" style="width:72px;height:72px;border-radius:50%;object-fit:cover">{% else %}<div class="avatar" style="width:72px;height:72px;font-size:28px">{{(profile.full_name[:1] if profile.full_name else current_user.email[:1])|upper}}</div>{% endif %}</div><form method="post" action="{{url_for('candidate.upload_photo')}}" enctype="multipart/form-data" class="row-actions"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><input class="input" type="file" name="photo" accept=".jpg,.jpeg,.png,.webp" required><button class="btn">Upload photo</button></form></div>
+  <div class="detail-grid">
+    <div>
+      <div class="panel">
+        <div class="section-head"><div><h2>Basic information</h2><p class="muted">This is what recruiters see first.</p></div></div>
+        <form method="post"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><div class="form-grid">
+          <label>Full name<input class="input" name="full_name" value="{{profile.full_name}}" required></label>
+          <label>Professional headline<input class="input" name="headline" value="{{profile.headline}}" placeholder="e.g. Python Developer | Flask | SQL"></label>
+          <label>Location<input class="input" name="location" value="{{profile.location}}" placeholder="Delhi, India"></label>
+          <label>Phone<input class="input" name="phone" value="{{profile.phone}}"></label>
+          <label>Preferred role<input class="input" name="preferred_role" value="{{profile.preferred_role}}" placeholder="e.g. Backend Developer"></label>
+          <label>Expected salary (LPA)<input class="input" type="number" min="0" step="0.1" name="expected_salary" value="{% if profile.expected_salary %}{{profile.expected_salary/100000}}{% endif %}"></label>
+        </div><label>Professional summary<textarea class="input" name="summary" rows="6" maxlength="3000" placeholder="Tell recruiters about your strengths, experience and career goals.">{{profile.summary}}</textarea></label>
+        <label>Skills (comma separated)<textarea class="input" name="skills_text" rows="3" placeholder="Python, Flask, SQL, React, Git">{{profile.skills_text}}</textarea></label>
+        <button class="btn">Save profile</button></form>
+      </div>
+
+      <div class="panel"><div class="section-head"><div><h2>Skills & proficiency</h2><p class="muted">Add individual skills with your confidence level.</p></div></div>
+        {% for item in profile.skill_profiles %}<div class="list-row"><div><b>{{item.skill.name}}</b><small>{{item.proficiency}}{% if item.years %} · {{item.years|round(1)}} years{% endif %}</small></div><form method="post" action="{{url_for('candidate.delete_skill',item_id=item.id)}}"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><button class="icon-btn">×</button></form></div>{% endfor %}
+        <form method="post" action="{{url_for('candidate.add_skill')}}" class="form-grid"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><input class="input" name="skill" placeholder="Skill e.g. Python" required><select class="input" name="proficiency"><option>Beginner</option><option selected>Intermediate</option><option>Advanced</option><option>Expert</option></select><input class="input" type="number" step="0.1" min="0" name="years" placeholder="Years"><button class="btn small">Add skill</button></form>
+      </div>
+
+      <div class="panel"><div class="section-head"><div><h2>Education</h2></div></div>
+        {% for e in profile.education %}<div class="list-row"><div><b>{{e.degree}}</b><small>{{e.institution}}{% if e.year %} · {{e.year}}{% endif %}</small></div><form method="post" action="{{url_for('candidate.delete_education',item_id=e.id)}}"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><button class="icon-btn">×</button></form></div>{% endfor %}
+        <form method="post" action="{{url_for('candidate.add_education')}}" class="form-grid"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><input class="input" name="degree" placeholder="Degree / Diploma" required><input class="input" name="institution" placeholder="Institution" required><input class="input" name="year" placeholder="Year"><button class="btn small">Add education</button></form>
+      </div>
+
+      <div class="panel"><div class="section-head"><div><h2>Experience</h2></div></div>
+        {% for e in profile.experience %}<div class="list-row"><div><b>{{e.title}}</b><small>{{e.company}} · {{e.years|round(1)}} years</small></div><form method="post" action="{{url_for('candidate.delete_experience',item_id=e.id)}}"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><button class="icon-btn">×</button></form></div>{% endfor %}
+        <form method="post" action="{{url_for('candidate.add_experience')}}" class="form-grid"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><input class="input" name="title" placeholder="Job title" required><input class="input" name="company" placeholder="Company" required><input class="input" type="number" step="0.1" name="years" placeholder="Years"><button class="btn small">Add experience</button></form>
+      </div>
+
+      <div class="panel"><div class="section-head"><div><h2>Certifications</h2></div></div>
+        {% for c in profile.certifications %}<div class="list-row"><div><b>{{c.name}}</b><small>{{c.issuer or 'Certification'}}{% if c.issue_year %} · {{c.issue_year}}{% endif %}</small></div><form method="post" action="{{url_for('candidate.delete_certification',item_id=c.id)}}"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><button class="icon-btn">×</button></form></div>{% endfor %}
+        <form method="post" action="{{url_for('candidate.add_certification')}}" class="form-grid"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><input class="input" name="name" placeholder="Certification name" required><input class="input" name="issuer" placeholder="Issuing organisation"><input class="input" name="issue_year" placeholder="Year"><input class="input" name="credential_url" placeholder="Credential URL"><button class="btn small">Add certification</button></form>
+      </div>
+
+      <div class="panel"><div class="section-head"><div><h2>Projects & portfolio</h2></div></div>
+        {% for p in profile.projects %}<div class="list-row"><div><b>{{p.name}}</b><small>{{p.technologies or 'Project'}}{% if p.project_url %} · <a href="{{p.project_url}}" target="_blank" rel="noopener">View</a>{% endif %}</small><p class="muted">{{p.description[:180]}}</p></div><form method="post" action="{{url_for('candidate.delete_project',item_id=p.id)}}"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><button class="icon-btn">×</button></form></div>{% endfor %}
+        <form method="post" action="{{url_for('candidate.add_project')}}" class="stack"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><input class="input" name="name" placeholder="Project name" required><input class="input" name="technologies" placeholder="Technologies: Flask, SQLite, JavaScript"><textarea class="input" name="description" rows="3" placeholder="What did you build?"></textarea><input class="input" name="project_url" placeholder="GitHub / live project URL"><button class="btn small">Add project</button></form>
+      </div>
+
+      <div class="panel"><h2>Professional links</h2><form method="post" action="{{url_for('candidate.save_links')}}" class="stack"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><input class="input" name="linkedin" value="{{profile.links.linkedin if profile.links else ''}}" placeholder="LinkedIn URL"><input class="input" name="github" value="{{profile.links.github if profile.links else ''}}" placeholder="GitHub URL"><input class="input" name="portfolio" value="{{profile.links.portfolio if profile.links else ''}}" placeholder="Portfolio URL"><button class="btn">Save links</button></form></div>
+    </div>
+
+    <div>
+      <div class="panel"><div class="section-head"><div><p class="eyebrow">RESUME CENTER</p><h2>Resumes</h2><p class="muted">Keep multiple versions and choose one as primary.</p></div><a class="btn small ghost" href="{{url_for('candidate.resumes')}}">Manage</a></div>
+        <form method="post" action="{{url_for('candidate.upload_resume')}}" enctype="multipart/form-data"><input type="hidden" name="csrf_token" value="{{csrf_token()}}"><input class="input" type="file" name="resume" accept=".pdf,.doc,.docx" required><button class="btn">Upload new resume</button></form>
+        {% if profile.resume_original_name %}<p class="muted">Primary: <b>{{profile.resume_original_name}}</b></p>{% endif %}
+      </div>
+      <div class="panel"><h2>Profile checklist</h2><div class="progress"><span style="width:{{ [100, (profile_completion if profile_completion is defined else 0)]|min }}%"></span></div><p class="muted">Complete your profile from the dashboard to improve matching.</p><div class="quick-grid" style="grid-template-columns:1fr"><a class="quick-card" href="{{url_for('candidate.dashboard')}}"><b>View profile score →</b><span>See what is still missing.</span></a><a class="quick-card" href="{{url_for('candidate.saved_jobs')}}"><b>Saved jobs →</b><span>Review opportunities you bookmarked.</span></a></div></div>
+    </div>
+  </div>
+</section>
+{% endblock %}

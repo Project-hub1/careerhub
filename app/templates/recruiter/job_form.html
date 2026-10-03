@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}{% if job %}Edit{% else %}Post{% endif %} Job — CareerHub{% endblock %}
+{% block content %}
+<section class="section job-post-page">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">RECRUITER CENTER</p>
+      <h1>{% if job %}Edit your job posting{% else %}Post a job that attracts the right candidates{% endif %}</h1>
+      <p class="muted">Add clear, complete information. Published jobs are saved to the database and appear on CareerHub immediately.</p>
+    </div>
+    <a class="btn ghost" href="{{url_for('recruiter.jobs')}}">← Manage jobs</a>
+  </div>
+
+  <div class="post-layout">
+    <form method="post" class="panel job-form" id="jobForm">
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+
+      <div class="form-section">
+        <div class="form-section-title"><span>01</span><div><h2>Role basics</h2><p>Tell candidates what they will be applying for.</p></div></div>
+        <div class="form-grid">
+          <label>Job title *<input class="input" maxlength="180" name="title" value="{{job.title if job else ''}}" placeholder="e.g. Python Developer" required></label>
+          <label>Location *<input class="input" maxlength="120" name="location" value="{{job.location if job else ''}}" placeholder="e.g. Bengaluru, Karnataka" required></label>
+          <label>Job type
+            <select name="job_type">
+              {% for x in ['Full-time','Part-time','Internship','Contract'] %}<option {% if job and job.job_type==x %}selected{% endif %}>{{x}}</option>{% endfor %}
+            </select>
+          </label>
+          <label>Work mode
+            <select name="work_mode">
+              {% for x in ['On-site','Hybrid','Remote'] %}<option {% if job and job.work_mode==x %}selected{% endif %}>{{x}}</option>{% endfor %}
+            </select>
+          </label>
+          <label>Min experience (years)<input class="input" type="number" min="0" max="50" step="0.5" name="experience_min" value="{{job.experience_min if job else 0}}"></label>
+          <label>Max experience (years)<input class="input" type="number" min="0" max="50" step="0.5" name="experience_max" value="{{job.experience_max if job and job.experience_max is not none else ''}}" placeholder="Optional"></label>
+          <label>Min salary (LPA)<input class="input" type="number" min="0" max="500" step="0.1" name="salary_min" value="{% if job and job.salary_min is not none %}{{job.salary_min/100000}}{% endif %}" placeholder="e.g. 4.5"></label>
+          <label>Max salary (LPA)<input class="input" type="number" min="0" max="500" step="0.1" name="salary_max" value="{% if job and job.salary_max is not none %}{{job.salary_max/100000}}{% endif %}" placeholder="e.g. 8.0"></label>
+          <label>Application deadline (days)<input class="input" type="number" min="1" max="3650" name="deadline_days" value="30"></label>
+          {% if job %}<label>Status<select name="status">{% for x in ['Active','Paused','Closed'] %}<option {% if job.status==x %}selected{% endif %}>{{x}}</option>{% endfor %}</select></label>{% endif %}
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><span>02</span><div><h2>Skills & education</h2><p>Use comma-separated skills so candidates can discover the role.</p></div></div>
+        <label>Skills<input class="input" name="skills" value="{% if job %}{{job.skills|map(attribute='name')|join(', ')}}{% endif %}" placeholder="Python, SQL, Flask, REST API, Git"></label>
+        <div class="skill-suggestions"><button type="button" data-skill="Python">Python</button><button type="button" data-skill="Java">Java</button><button type="button" data-skill="JavaScript">JavaScript</button><button type="button" data-skill="React">React</button><button type="button" data-skill="SQL">SQL</button><button type="button" data-skill="Flask">Flask</button><button type="button" data-skill="Django">Django</button><button type="button" data-skill="Git">Git</button></div>
+        <label>Education<input class="input" name="education" value="{{job.education if job else ''}}" placeholder="e.g. B.Tech / BCA / Diploma in Computer Engineering"></label>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><span>03</span><div><h2>Job description</h2><p>Write enough detail for candidates to understand the opportunity.</p></div></div>
+        <label>Overview *<textarea class="input counted" name="description" rows="8" maxlength="5000" placeholder="Describe the role, team, product and what the person will work on..." required>{{job.description if job else ''}}</textarea><small class="counter">0 / 5000</small></label>
+        <label>Responsibilities<textarea class="input counted" name="responsibilities" rows="7" maxlength="5000" placeholder="• Build and maintain...
+• Collaborate with...
+• Review code...">{{job.responsibilities if job else ''}}</textarea><small class="counter">0 / 5000</small></label>
+        <label>Requirements<textarea class="input counted" name="requirements" rows="7" maxlength="5000" placeholder="• 1+ years experience...
+• Strong understanding of...
+• Good communication...">{{job.requirements if job else ''}}</textarea><small class="counter">0 / 5000</small></label>
+        <label>Benefits & perks<textarea class="input counted" name="benefits" rows="5" maxlength="3000" placeholder="Health insurance, flexible hours, learning budget, work from home...">{{job.benefits if job else ''}}</textarea><small class="counter">0 / 3000</small></label>
+      </div>
+
+      <div class="publish-bar">
+        <div><strong>{% if job %}Ready to save changes?{% else %}Ready to publish?{% endif %}</strong><span>Your posting will be stored in the CareerHub database.</span></div>
+        <button class="btn" type="submit">{% if job %}Save changes{% else %}Publish job →{% endif %}</button>
+      </div>
+    </form>
+
+    <aside class="post-sidebar">
+      <div class="panel live-preview">
+        <p class="eyebrow">LIVE PREVIEW</p>
+        <div class="preview-logo" id="previewLogo">C</div>
+        <h2 id="previewTitle">Your job title</h2>
+        <p id="previewCompany">{{current_user.recruiter_profile.company.name if current_user.recruiter_profile and current_user.recruiter_profile.company else 'Your company'}}</p>
+        <div class="preview-meta"><span id="previewLocation">Location</span><span id="previewMode">On-site</span><span id="previewType">Full-time</span></div>
+        <div class="preview-salary" id="previewSalary">Salary not specified</div>
+        <div class="preview-divider"></div>
+        <p class="muted" id="previewDescription">Your job description will appear here.</p>
+      </div>
+      <div class="panel posting-tips"><h3>Posting checklist</h3><ul><li>Use a specific job title.</li><li>Add a realistic salary range where possible.</li><li>List the most important skills.</li><li>Explain responsibilities and requirements separately.</li><li>Keep the deadline long enough for candidates to apply.</li></ul></div>
+    </aside>
+  </div>
+</section>
+<script>
+(function(){
+  const form=document.getElementById('jobForm');
+  if(!form) return;
+  const title=form.querySelector('[name="title"]'), location=form.querySelector('[name="location"]'), mode=form.querySelector('[name="work_mode"]'), type=form.querySelector('[name="job_type"]'), smin=form.querySelector('[name="salary_min"]'), smax=form.querySelector('[name="salary_max"]'), desc=form.querySelector('[name="description"]');
+  const $=id=>document.getElementById(id);
+  function update(){
+    $('previewTitle').textContent=title.value.trim()||'Your job title';
+    $('previewLogo').textContent=(title.value.trim()[0]||'C').toUpperCase();
+    $('previewLocation').textContent=location.value.trim()||'Location';
+    $('previewMode').textContent=mode.value;
+    $('previewType').textContent=type.value;
+    const a=parseFloat(smin.value), b=parseFloat(smax.value);
+    $('previewSalary').textContent=(!isNaN(a)||!isNaN(b)) ? `₹${isNaN(a)?'—':a.toFixed(1)}L – ₹${isNaN(b)?'—':b.toFixed(1)}L / year` : 'Salary not specified';
+    $('previewDescription').textContent=desc.value.trim()||'Your job description will appear here.';
+  }
+  form.querySelectorAll('input,select,textarea').forEach(el=>el.addEventListener('input',update));
+  form.querySelectorAll('.counted').forEach(el=>{ const c=el.nextElementSibling; const f=()=>c.textContent=`${el.value.length} / ${el.maxLength}`; el.addEventListener('input',f); f(); });
+  form.querySelectorAll('[data-skill]').forEach(btn=>btn.addEventListener('click',()=>{const input=form.querySelector('[name="skills"]'); const values=input.value.split(',').map(x=>x.trim()).filter(Boolean); if(!values.includes(btn.dataset.skill)) values.push(btn.dataset.skill); input.value=values.join(', '); input.dispatchEvent(new Event('input'));}));
+  update();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}CareerHub — Find your next opportunity{% endblock %}
+{% block content %}
+<section class="hero"><div class="hero-inner">
+  <p class="eyebrow">CAREERHUB JOB MARKETPLACE</p>
+  <h1>Find work that fits your next career move.</h1>
+  <p class="lead">Search jobs by role, skills, company, location, experience, salary and work mode — all in one place.</p>
+  <form class="hero-search" action="{{url_for('jobs.listing')}}">
+    <div class="search-field"><span class="search-icon">⌕</span><input name="q" placeholder="Job title, skills or company" aria-label="Job title, skills or company"></div>
+    <div class="search-field"><span class="search-icon">⌖</span><input name="location" placeholder="City or remote" aria-label="Location"></div>
+    <button class="btn">Search jobs →</button>
+  </form>
+</div></section>
+<section class="stats"><div class="stat"><b>{{job_count}}</b><span>Active jobs</span></div><div class="stat"><b>{{company_count}}</b><span>Verified companies</span></div><div class="stat"><b>{{candidate_count}}</b><span>Registered candidates</span></div></section>
+<section class="section">
+  <div class="section-head"><div><p class="eyebrow">START EXPLORING</p><h2>Everything you need to move forward</h2></div><a href="{{url_for('jobs.listing')}}">Browse all jobs →</a></div>
+  <div class="grid3">
+    <a class="feature" href="{{url_for('jobs.listing')}}"><div class="feature-icon">⌕</div><h3>Search smarter</h3><p>Combine keywords, location, salary, experience, work mode and date filters.</p></a>
+    <a class="feature" href="{{url_for('jobs.companies')}}"><div class="feature-icon">▦</div><h3>Explore companies</h3><p>View company profiles and see their currently open positions.</p></a>
+    <a class="feature" href="{{url_for('auth.register')}}"><div class="feature-icon">✓</div><h3>Build your profile</h3><p>Create a candidate or recruiter account and manage your career workflow.</p></a>
+  </div>
+</section>
+{% if featured_jobs %}<section class="section" style="padding-top:0"><div class="section-head"><div><p class="eyebrow">LATEST OPPORTUNITIES</p><h2>Recently posted jobs</h2><p class="muted">Newly published jobs appear here automatically after the recruiter saves and publishes them.</p></div></div><div class="grid2">{% for job in featured_jobs %}<a class="mini-job" href="{{url_for('jobs.detail',job_id=job.id)}}"><div class="job-main"><div class="company-logo">{{job.company.name[:1]}}</div><div><b>{{job.title}}</b><span>{{job.company.name}} · {{job.location}}</span><span>{{job.work_mode}} · {{job.job_type}}</span><span>{{job.salary_min|lpa_range(job.salary_max)}}</span></div></div></a>{% endfor %}</div></section>{% endif %}
+{% endblock %}

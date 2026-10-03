@@ -1,0 +1,9 @@
+venv/
+.env
+__pycache__/
+.pytest_cache/
+*.pyc
+instance/*.db
+*.db
+uploads/resumes/*
+!uploads/resumes/.gitkeep

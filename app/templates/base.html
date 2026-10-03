@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}CareerHub{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}CareerHub — discover jobs, companies and career opportunities.{% endblock %}">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}">
+</head>
+<body>
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="{{ url_for('main.home') }}" aria-label="CareerHub home">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="7" width="16" height="12" rx="2"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M4 11h16M10 11v2h4v-2"/></svg></span>
+      Career<span>Hub</span>
+    </a>
+    <button class="mobile-menu" id="mobileMenu" aria-label="Open menu" aria-expanded="false">☰</button>
+    <nav class="nav-links" id="navLinks">
+      <a class="nav-link {% if request.endpoint and request.endpoint.startswith('jobs.') and request.endpoint != 'jobs.companies' %}active{% endif %}" href="{{ url_for('jobs.listing') }}">Jobs</a>
+      <a class="nav-link {% if request.endpoint == 'jobs.companies' or request.endpoint == 'jobs.company_detail' %}active{% endif %}" href="{{ url_for('jobs.companies') }}">Companies</a>
+      {% if current_user.is_authenticated %}
+        {% if current_user.role=='candidate' %}
+          <a class="nav-link {% if request.endpoint and request.endpoint.startswith('candidate.') %}active{% endif %}" href="{{ url_for('candidate.dashboard') }}">Dashboard</a>
+          <a class="nav-link" href="{{ url_for('candidate.applications') }}">Applications</a>
+          <a class="nav-link" href="{{ url_for('candidate.saved_jobs') }}">Saved</a>
+          <a class="nav-link" href="{{ url_for('candidate.profile') }}">Profile</a>
+          <a class="nav-link" href="{{ url_for('candidate.alerts') }}">Alerts</a>
+          <a class="nav-link" href="{{ url_for('candidate.messages') }}">Messages{% if unread_messages %} <span class="nav-badge">{{unread_messages}}</span>{% endif %}</a>
+          <a class="nav-link" href="{{ url_for('candidate.interviews') }}">Interviews</a>
+          <a class="nav-link" href="{{ url_for('candidate.saved_searches') }}">Searches</a>
+          <a class="nav-link" href="{{ url_for('candidate.search_history') }}">History</a>
+          <a class="nav-link" href="{{ url_for('candidate.saved_companies') }}">Companies</a>
+          <a class="nav-link" href="{{ url_for('candidate.notifications') }}">Notifications{% if unread_notifications %} <span class="nav-badge">{{unread_notifications}}</span>{% endif %}</a>
+        {% elif current_user.role=='recruiter' %}
+          <a class="nav-link {% if request.endpoint and request.endpoint.startswith('recruiter.') %}active{% endif %}" href="{{ url_for('recruiter.dashboard') }}">Recruiter</a>
+          <a class="nav-link" href="{{ url_for('recruiter.analytics') }}">Analytics</a>
+          <a class="nav-link" href="{{ url_for('recruiter.messages') }}">Messages{% if unread_messages %} <span class="nav-badge">{{unread_messages}}</span>{% endif %}</a>
+          <a class="nav-link" href="{{ url_for('recruiter.interviews') }}">Interviews</a>
+        {% else %}
+          <a class="nav-link {% if request.endpoint and request.endpoint.startswith('admin.') %}active{% endif %}" href="{{ url_for('admin.dashboard') }}">Admin</a>
+          <a class="nav-link" href="{{ url_for('admin.reports') }}">Reports</a>
+        {% endif %}
+        <div class="nav-user">
+          <span class="avatar">{{ (current_user.email[:1] or 'U')|upper }}</span>
+          <span class="user-name">{{ current_user.email }}</span>
+          <form method="post" action="{{ url_for('auth.logout') }}" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="link-btn">Logout</button></form>
+        </div>
+      {% else %}
+        <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+        <a class="btn small" href="{{ url_for('auth.register') }}">Get started</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+<main>
+  {% with messages=get_flashed_messages(with_categories=true) %}
+    {% for cat,msg in messages %}<div class="flash {{cat}}"><span>{{msg}}</span><button class="flash-close" aria-label="Dismiss">×</button></div>{% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="footer"><div class="footer-inner"><div><span class="footer-brand">CareerHub</span><div>Find work. Build careers.</div></div><div>© 2026 CareerHub · Built for candidates and recruiters.</div></div></footer>
+<div class="toast" id="toast"></div>
+<script src="{{ url_for('static',filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
